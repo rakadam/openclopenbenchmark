@@ -1,0 +1,37 @@
+#!/bin/bash
+
+
+resname="/dev/stdout"
+
+echo "#include<ocl_wrapper.h>" > $resname
+echo >> $resname
+
+
+for i in $*; do
+if grep -q "kernel void " $i; then
+    header=`grep "kernel void " $i | sed -e "s/\]/ /g;s/(/ ( /g;s/)/ ) /g;s/*/ /g;s/,/ , /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/  / /g;s/  / /g"`
+    name=`echo $header | cut -d ' ' -f 3`
+    names="$names $name"
+else
+    echo "Error: cannot find \"kernel void\" marker inside $i"
+    exit 1
+fi
+done
+
+echo >> $resname
+
+for name in $names; do
+echo "void run_ocl_$name(ocl_test&);" >> $resname
+echo "void run_gold_$name(ocl_test&);" >> $resname
+done
+
+echo >> $resname
+
+echo "void ocl_test::register_tests() {" >> $resname
+for name in $names; do
+echo "register_ocl_test(&run_ocl_$name);" >> $resname
+echo "register_gold_test(&run_gold_$name);" >> $resname
+done
+echo "}">> $resname
+
+

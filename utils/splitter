@@ -1,0 +1,146 @@
+#!/bin/bash
+
+
+if [ -e $1 ]; then
+    true;
+else
+    echo "Cannot open file: $1";
+    exit 1;
+fi
+
+tmpfile="splitter_$$.tmp"
+
+cat $1 > $tmpfile
+
+if grep "//Gold" $tmpfile > /dev/null; then
+    num=`grep -m 1 -b "//Gold" $tmpfile | cut -d ':' -f 1`
+else
+    echo "Error: cannot find \"//Gold\" marker inside input file"
+    rm $tmpfile
+    exit 1
+fi
+
+
+#echo $num
+
+num2=$((`cat $tmpfile | wc -c` - $num));
+
+
+if grep -q "kernel void " $tmpfile; then
+    header=`grep "kernel void " $tmpfile | sed -e "s/\]/ /g;s/(/ ( /g;s/)/ ) /g;s/*/ /g;s/,/ , /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/  / /g;s/  / /g"`
+else
+    echo "Error: cannot find \"kernel void\" marker inside input file"
+    rm $tmpfile
+    exit 1
+fi
+
+name=`echo $header | cut -d ' ' -f 3`
+
+echo $name
+
+resname="${2}${name}_wrap.cpp"
+
+for i in $header; do
+    if [ $i == "," ]; then
+	args="$args $prev";
+    fi
+    
+    if [ $i == ")" ]; then
+	args="$args $prev";
+    fi
+    
+    prev=$i
+done
+
+echo $args
+echo $header
+
+
+
+#echo $num2
+
+
+echo "#include<ocl_wrapper.h>" > $resname
+echo "static const char* ocl_src = " >> $resname
+cat $tmpfile | head -c $num | sed -e 's/"/\\"/g;s/\\/\\\\/g;s/^/"/g;s/$/\\n"/g' >> $resname
+echo ";" >> $resname
+cat $tmpfile | tail -c $num2 >> $resname
+
+echo >> $resname
+
+echo "void run_ocl_$name(ocl_test& test) {" >> $resname
+echo "cl_int ciErrNum = 0;" >> $resname
+
+if grep -q "MAX_GLOBAL_SIZE:" $tmpfile; then
+    sizenum=`grep "MAX_GLOBAL_SIZE:" $tmpfile | cut -d ':' -f 2`
+    echo "test.max_global_size[\"$name\"][0] = $sizenum;" >> $resname
+    echo "test.max_global_size[\"$name\"][1] = 1;" >> $resname
+    echo "test.max_global_size[\"$name\"][2] = 1;" >> $resname
+fi
+
+for i in 0 1 2; do
+if grep -q "MAX_GLOBAL_SIZE($i)" $tmpfile; then
+    sizenum=`grep "MAX_GLOBAL_SIZE($i)" $tmpfile | cut -d ':' -f 2`
+    echo "test.max_global_size[\"$name\"][$i] = $sizenum;" >> $resname
+fi
+done
+
+if grep -q "MAX_LOCAL_SIZE:" $tmpfile; then
+    sizenum=`grep "MAX_LOCAL_SIZE:" $tmpfile | cut -d ':' -f 2`
+    echo "test.max_local_size[\"$name\"][0] = $sizenum;" >> $resname
+    echo "test.max_local_size[\"$name\"][1] = 1;" >> $resname
+    echo "test.max_local_size[\"$name\"][2] = 1;" >> $resname
+fi
+
+for i in 0 1 2; do
+if grep -q "MAX_LOCAL_SIZE($i)" $tmpfile; then
+    sizenum=`grep "MAX_LOCAL_SIZE($i)" $tmpfile | cut -d ':' -f 2`
+    echo "test.max_local_size[\"$name\"][$i] = $sizenum;" >> $resname
+fi
+done
+
+if ! grep -q "MAX_GLOBAL_SIZE" $tmpfile; then
+    echo "test.max_global_size[\"$name\"][0] = 0;" >> $resname
+    echo "test.max_global_size[\"$name\"][1] = 1;" >> $resname
+    echo "test.max_global_size[\"$name\"][2] = 1;" >> $resname
+fi
+
+if ! grep -q "MAX_LOCAL_SIZE" $tmpfile; then
+    echo "test.max_local_size[\"$name\"][0] = 0;" >> $resname
+    echo "test.max_local_size[\"$name\"][1] = 1;" >> $resname
+    echo "test.max_local_size[\"$name\"][2] = 1;" >> $resname
+fi
+
+echo "cl_program program = test.ocl_load_src(ocl_src);" >> $resname
+echo "cl_kernel kernel = clCreateKernel(program, \"$name\", &ciErrNum);" >> $resname
+echo "test.geterr(ciErrNum, __LINE__, \"$name\");" >> $resname
+echo "int parnum = 0;" >> $resname
+
+for i in $args; do
+    echo "clSetKernelArg(kernel, parnum++, sizeof(test.dev_$i), &test.dev_$i);" >> $resname
+done
+
+echo "test.launch_kernel(kernel, \"$name\");" >> $resname
+echo "clReleaseKernel(kernel);" >> $resname
+echo "clReleaseProgram(program);" >> $resname
+echo "}" >> $resname
+
+echo >> $resname
+
+echo "void run_gold_$name(ocl_test& test) {" >> $resname
+
+run_gold="(";
+
+for i in $args; do
+    if [ $run_gold == "(" ]; then
+	run_gold="${run_gold}test.host_${i}"
+    else
+	run_gold="${run_gold},test.host_${i}"
+    fi
+done
+
+echo "${name}${run_gold});" >> $resname
+echo "}">> $resname
+
+
+rm $tmpfile

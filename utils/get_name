@@ -1,0 +1,42 @@
+#!/bin/bash
+
+
+if [ -e $1 ]; then
+    true;
+else
+    echo "Cannot open file: $1";
+    exit 1;
+fi
+
+tmpfile="splitter_$$.tmp"
+
+cat $1 > $tmpfile
+
+if grep "//Gold" $tmpfile > /dev/null; then
+    num=`grep -m 1 -b "//Gold" $tmpfile | cut -d ':' -f 1`
+else
+    echo "Error: cannot find \"//Gold\" marker inside input file"
+    rm $tmpfile
+    exit 1
+fi
+
+
+#echo $num
+
+num2=$((`cat $tmpfile | wc -c` - $num));
+
+
+if grep -q "kernel void " $tmpfile; then
+    header=`grep "kernel void " $tmpfile | sed -e "s/\]/ /g;s/(/ ( /g;s/)/ ) /g;s/*/ /g;s/,/ , /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/    / /g;s/  / /g;s/  / /g"`
+else
+    echo "Error: cannot find \"kernel void\" marker inside input file"
+    rm $tmpfile
+    exit 1
+fi
+
+name=`echo $header | cut -d ' ' -f 3`
+
+rm $tmpfile
+
+echo -n $name
+
