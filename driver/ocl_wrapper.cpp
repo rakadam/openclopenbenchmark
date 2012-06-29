@@ -351,9 +351,11 @@ static double sqr(double x)
 
 void ocl_test::test_configuration(cl_kernel kernel, test_iden ident)
 {
-  result_summary summary;
+  result_summary summary_final;
   
-  for (int w = 0; w < 3; w++)
+  summary_final.JB = 1E40;
+  
+  for (int w = 0; w < 10; w++)
   {
     cl_int errnum;
     cl_event event;
@@ -395,7 +397,8 @@ void ocl_test::test_configuration(cl_kernel kernel, test_iden ident)
       results.push_back(event_to_time(events[i]));
     }
     
-    
+    result_summary summary;
+
     summary.metadata = ident;
     
     summary.E = gsl_stats_mean(&results[0], 1, results.size());
@@ -408,13 +411,21 @@ void ocl_test::test_configuration(cl_kernel kernel, test_iden ident)
     
     logfile << "E: " << summary.E << "us D:" << summary.D << "us  JB:" << summary.JB << endl;
     
-    if (summary.JB < 1000) ///< glitches mess with the statistics, so we retry a few times if JB is too big
+    if (summary.JB < 3000) ///< glitches mess with the statistics, so we retry a few times if JB is too big
     {
+      summary_final = summary;
       break;
+    }
+    
+    if (summary.JB < summary_final.JB)
+    {
+      summary_final = summary;
     }
   }
   
-  this->results.push_back(summary);
+  logfile << "final E: " << summary_final.E << "us D:" << summary_final.D << "us  JB:" << summary_final.JB << endl;
+    
+  this->results.push_back(summary_final);
 }
 
 
