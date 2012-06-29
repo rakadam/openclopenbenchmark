@@ -21,6 +21,7 @@ void ocl_test::run_tests()
 {
   for (int i = 0; i < int(ocl_test_funcs.size()); i++)
   {
+		logfile << "test #" << i << endl;
     ocl_test_funcs[i](*this);
   }
 }
@@ -81,7 +82,7 @@ void ocl_test::run_tests_on_all()
     
     cl_uint num = 0;
     errnum = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, devices.size(), &devices[0], &num);
-    geterr(errnum);
+    geterr(errnum, __LINE__, "ocl_wrapper.cpp");
     devices.resize(num);
     
     for (int j = 0; j < int(devices.size()); j++)
@@ -103,14 +104,16 @@ void ocl_test::run_tests_on_all()
       
       dev_name = ss.str();
       
-      logfile << "Testing: " << dev_name;
+      logfile << "Testing: " << dev_name << endl;
       
       context = clCreateContext(cps, 1, &cur_dev, NULL, NULL, &errnum);
-      geterr(errnum);
+      geterr(errnum, __LINE__, "ocl_wrapper.cpp");
       
+			logfile << "context :" << context << endl;
+			
       command_queue = clCreateCommandQueue(context, cur_dev, CL_QUEUE_PROFILING_ENABLE, &errnum);
-      geterr(errnum);
-      
+      geterr(errnum, __LINE__, "ocl_wrapper.cpp");
+      logfile << "cmdqueue :" << command_queue << endl;
       alloc_memory();
       
       run_tests();
@@ -141,12 +144,12 @@ cl_program ocl_test::ocl_load_src(const char* src)
   size_t len = strlen(src);
   
   cl_program program = clCreateProgramWithSource(context, 1, (const char **)&src, &len, &errnum);
-  geterr(errnum);
+  geterr(errnum, __LINE__, "ocl_wrapper.cpp");
     
   stringstream ss;
   ss << "-Dlocal_mem_size=" << local_mem_size;
   
-  errnum = clBuildProgram(program, 1, &devices[0], ss.str().c_str(), NULL, NULL);
+  errnum = clBuildProgram(program, 1, &devices[cur_dev_num], ss.str().c_str(), NULL, NULL);
   
   char buf[100000];
   size_t rlen = 0;
@@ -156,7 +159,7 @@ cl_program ocl_test::ocl_load_src(const char* src)
 
   logfile << buf << endl;
   
-  geterr(errnum);
+  geterr(errnum, __LINE__, "ocl_wrapper.cpp");
   
   return program;
 }
@@ -257,6 +260,8 @@ void ocl_test::launch_kernel(cl_kernel kernel, const char* name)
   size_t work_group_computed_size;
   
   clGetKernelWorkGroupInfo(kernel, devices[cur_dev_num], CL_KERNEL_WORK_GROUP_SIZE, sizeof(work_group_computed_size), &work_group_computed_size, NULL);
+  
+  //local_max_x = local_max_y = local_max_z = 1;
   
   for (long lx = 1; lx <= local_max_x; lx++)
   for (long ly = 1; ly <= local_max_y; ly++)
@@ -362,7 +367,7 @@ void ocl_test::test_configuration(cl_kernel kernel, test_iden ident)
     
     ///warmup:
     errnum = clEnqueueNDRangeKernel(command_queue, kernel, 3, NULL, &ident.global_size[0], &ident.local_size[0], 0, NULL, &event);
-    geterr(errnum);
+    geterr(errnum, __LINE__, "ocl_wrapper.cpp");
     clFinish(command_queue);
     
     double warmup_time = event_to_time(event);
@@ -385,7 +390,7 @@ void ocl_test::test_configuration(cl_kernel kernel, test_iden ident)
       cl_event event;
       errnum = clEnqueueNDRangeKernel(command_queue, kernel, 3, NULL, &ident.global_size[0], &ident.local_size[0], 0, NULL, &event);
       events.push_back(event);
-      geterr(errnum);
+      geterr(errnum, __LINE__, "ocl_wrapper.cpp");
     }
     
     clFinish(command_queue);
@@ -505,9 +510,9 @@ void ocl_test::alloc_memory()
 {
   cl_int errnum = 0;
   dev_buffer1 = clCreateBuffer(context, CL_MEM_READ_WRITE, alloc_size, NULL, &errnum);
-  geterr(errnum);
+  geterr(errnum, __LINE__, "ocl_wrapper.cpp");
   dev_buffer2 = clCreateBuffer(context, CL_MEM_READ_WRITE, alloc_size, NULL, &errnum);
-  geterr(errnum);
+  geterr(errnum, __LINE__, "ocl_wrapper.cpp");
   host_buffer_size = alloc_size / sizeof(int);
   dev_buffer_size = host_buffer_size;
   
@@ -520,7 +525,7 @@ void ocl_test::alloc_memory()
   }
 
   errnum = clEnqueueWriteBuffer(command_queue, dev_buffer1, CL_TRUE, 0, alloc_size, host_buffer1, 0, NULL, NULL);
-  geterr(errnum);
+  geterr(errnum, __LINE__, "ocl_wrapper.cpp");
   
 }
 

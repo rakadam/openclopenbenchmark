@@ -3,6 +3,8 @@ project (openclopenbenchmark)
 
 include_directories(include)
 
+SET(CMAKE_CXX_FLAGS "-O0 -g")
+
 SET(main_SRC
 	driver/main.cpp
         driver/ocl_wrapper.cpp
