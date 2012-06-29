@@ -367,9 +367,9 @@ void ocl_test::test_configuration(cl_kernel kernel, test_iden ident)
     
     int rounds = (double(4*1000*1000) / warmup_time);
     
-    if (rounds > 512)
+    if (rounds > 256)
     {
-      rounds = 512;
+      rounds = 256;
     }
     
     logfile << rounds << " rounds, wtime: " << warmup_time << "us" << endl;

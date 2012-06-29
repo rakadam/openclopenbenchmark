@@ -36,7 +36,7 @@ fi
 
 name=`echo $header | cut -d ' ' -f 3`
 
-echo $name
+#echo $name
 
 resname="${2}${name}_wrap.cpp"
 
@@ -52,8 +52,8 @@ for i in $header; do
     prev=$i
 done
 
-echo $args
-echo $header
+#echo $args
+#echo $header
 
 
 

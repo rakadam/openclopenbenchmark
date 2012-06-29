@@ -1,0 +1,37 @@
+
+//OpenCL
+//MAX_GLOBAL_SIZE(0):-1
+//MAX_GLOBAL_SIZE(1):1
+//MAX_GLOBAL_SIZE(2):1
+//MAX_LOCAL_SIZE(0):0
+//MAX_LOCAL_SIZE(1):1
+//MAX_LOCAL_SIZE(2):1
+
+kernel void lfsr_64(global int* buffer1, global int*buffer2, int buffer_size)
+{
+  ulong reg = buffer1[get_global_id(0)];
+
+  for (int i = 0; i < 1024; i++)
+  {
+    reg = (reg >> 1) ^ (-(reg & 1UL) & 0xD800000000000000L);
+  }
+  
+  buffer2[get_global_id(0)] = reg;
+}
+
+//Gold
+
+void lfsr_64(void* buffer1, void* buffer2, int buffer_size)
+{
+  for (int i = 0; i <  buffer_size; i++)
+  {
+    unsigned long reg = ((int*)buffer1)[i];
+    
+    for (int w = 0; w < 1024; w++)
+    {
+      reg = (reg >> 1) ^ (-(reg & 1UL) & 0xD800000000000000L);
+    }
+    
+    ((int*)buffer2)[i] = reg; 
+  }
+}

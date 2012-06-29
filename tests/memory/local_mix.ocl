@@ -1,0 +1,30 @@
+
+//OpenCL
+//MAX_GLOBAL_SIZE(0):(1024*1024*2)
+//MAX_GLOBAL_SIZE(1):1
+//MAX_GLOBAL_SIZE(2):1
+//MAX_LOCAL_SIZE(0):0
+//MAX_LOCAL_SIZE(1):1
+//MAX_LOCAL_SIZE(2):1
+
+kernel void local_mix(global int* buffer1, global int*buffer2, int buffer_size)
+{
+  local int buf[local_mem_size / sizeof(int)];
+  
+  buf[get_local_id(0)] = buffer1[get_global_id(0)];
+  
+  barrier(CLK_LOCAL_MEM_FENCE);
+  
+  buffer2[get_global_id(0)] = buf[get_local_size(0) - get_local_id(0) - 1]; 
+}
+
+//Gold
+
+void local_mix(void* buffer1, void* buffer2, int buffer_size)
+{
+  throw "unimplemented";
+	for (int i = 0; i <  buffer_size; i++)
+	{
+	    ((int*)buffer2)[i] = ((int*)buffer1)[i];
+	}
+}

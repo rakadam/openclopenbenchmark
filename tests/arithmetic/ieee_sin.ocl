@@ -1,0 +1,37 @@
+
+//OpenCL
+//MAX_GLOBAL_SIZE(0):-1
+//MAX_GLOBAL_SIZE(1):1
+//MAX_GLOBAL_SIZE(2):1
+//MAX_LOCAL_SIZE(0):0
+//MAX_LOCAL_SIZE(1):1
+//MAX_LOCAL_SIZE(2):1
+
+kernel void ieee_sin(global int* buffer1, global int*buffer2, int buffer_size)
+{
+  float val = ((float)buffer1[get_global_id(0)]) / 1000.0f;
+  
+  for (int i = 0; i < 256; i++)
+  {
+    val = sin(val+1)+1;
+  }
+  
+  buffer2[get_global_id(0)] = val*1000;
+}
+
+//Gold
+
+void ieee_sin(void* buffer1, void* buffer2, int buffer_size)
+{
+  for (int i = 0; i <  buffer_size; i++)
+  {
+    float val = ((float)(((int*)buffer1)[i])) / 1000.0f;
+
+    for (int w = 0; w < 256; w++)
+    {
+      val = sin(val+1)+1;
+    }
+
+    ((int*)buffer2)[i] = val*1000;
+  }
+}

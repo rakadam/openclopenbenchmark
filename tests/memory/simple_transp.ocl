@@ -11,8 +11,9 @@ kernel void simple_transp(global int* buffer1, global int*buffer2, int buffer_si
 {
 	int index = get_global_id(0);
 	index = (index >> 10) | ((index&0x3FF) << 10);
-	
-	buffer2[index] = buffer1[get_global_id(0)];
+        int val = buffer1[get_global_id(0)];
+        
+	buffer2[index] = val;
 }
 
 //Gold

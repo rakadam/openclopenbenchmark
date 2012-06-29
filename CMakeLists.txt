@@ -11,6 +11,8 @@ SET(main_SRC
 
 file(GLOB test_SRC
 	tests/memory/*.ocl
+	tests/arithmetic/*.ocl
+	tests/control/*.ocl
 )
 
 EXECUTE_PROCESS(
