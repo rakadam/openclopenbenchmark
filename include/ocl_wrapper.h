@@ -24,6 +24,8 @@ class ocl_test
   
   std::vector<test_func> gold_test_funcs;
   std::vector<test_func> ocl_test_funcs;
+  std::map<std::string, test_func> gold_test_funcs_by_name;
+  std::map<std::string, test_func> ocl_test_funcs_by_name;
   
   typedef std::string Tdevicename;
   
@@ -55,6 +57,7 @@ class ocl_test
   size_t max_work_group_size;
   
   std::string clean_spaces(std::string name);
+  bool interesting_number(long num);
 public:
   
   std::map<std::string, std::map<int, int> > max_global_size; ///< max global size for kernel, if ==zero, then it is unlimited, if -1 it's the max simultanious hw thread num
@@ -72,8 +75,8 @@ public:
   void run_tests_on_all();
   double event_to_time(cl_event event);
   void test_configuration(cl_kernel kernel, test_iden ident);
-  void register_ocl_test(test_func);
-  void register_gold_test(test_func);
+  void register_ocl_test(test_func, std::string name);
+  void register_gold_test(test_func, std::string name);
   cl_program ocl_load_src(const char* src);
   void launch_kernel(cl_kernel kernel, const char* name);
   void geterr(cl_int err);

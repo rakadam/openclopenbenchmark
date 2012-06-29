@@ -29,8 +29,8 @@ echo >> $resname
 
 echo "void ocl_test::register_tests() {" >> $resname
 for name in $names; do
-echo "register_ocl_test(&run_ocl_$name);" >> $resname
-echo "register_gold_test(&run_gold_$name);" >> $resname
+echo "register_ocl_test(&run_ocl_$name, \"$name\");" >> $resname
+echo "register_gold_test(&run_gold_$name, \"$name\");" >> $resname
 done
 echo "}">> $resname
 

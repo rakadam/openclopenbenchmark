@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <assert.h>
+#include <cmath>
 #include <gsl/gsl_statistics_double.h>
 
 using namespace std;
@@ -95,9 +96,9 @@ void ocl_test::run_tests_on_all()
 
       size_t ret_size;
       clGetDeviceInfo(cur_dev, CL_DEVICE_NAME, sizeof(pbuf), pbuf, &ret_size);
-      ss << string(pbuf, pbuf+ret_size);
+      ss << string(pbuf, pbuf+ret_size-1);
       clGetDeviceInfo(cur_dev, CL_DEVICE_VERSION, sizeof(pbuf), pbuf, &ret_size);
-      ss << "<#>" << string(pbuf, pbuf+ret_size);
+      ss << "<#>" << string(pbuf, pbuf+ret_size-1);
       ss << "<#>" << i;
       
       dev_name = ss.str();
@@ -122,13 +123,15 @@ void ocl_test::run_tests_on_all()
   }
 }
 
-void ocl_test::register_ocl_test(test_func f)
+void ocl_test::register_ocl_test(test_func f, std::string name)
 {
+  ocl_test_funcs_by_name[name] = f;
   ocl_test_funcs.push_back(f);
 }
 
-void ocl_test::register_gold_test(test_func f)
+void ocl_test::register_gold_test(test_func f, std::string name)
 {
+  gold_test_funcs_by_name[name] = f;
   gold_test_funcs.push_back(f);
 }
 
@@ -156,6 +159,42 @@ cl_program ocl_test::ocl_load_src(const char* src)
   geterr(errnum);
   
   return program;
+}
+
+bool ocl_test::interesting_number(long num)
+{
+  if (num <= 16)
+  {
+    return true;
+  }
+  
+  if (abs(long(pow(2, int(round(log2(num)))))-num) < 6)
+  {
+    return true;
+  }
+  
+  int pnum = 0;
+  
+  long m = num;
+  
+  while (m != 1)
+  {
+    for (int i = 2; i <= num; i++)
+    {
+      while (m%i == 0)
+      {
+        m /= i;
+        pnum++;
+      }
+    }
+  }
+  
+  if ((pnum > 4 and num < 255) or pnum > 5)
+  {
+    return true;
+  }
+  
+  return false;
 }
 
 void ocl_test::launch_kernel(cl_kernel kernel, const char* name)
@@ -223,6 +262,7 @@ void ocl_test::launch_kernel(cl_kernel kernel, const char* name)
   for (long ly = 1; ly <= local_max_y; ly++)
   for (long lz = 1; lz <= local_max_z; lz++)
   if (lx*ly*lz <= max_work_group_size and lx*ly*lz <= work_group_computed_size)
+  if (interesting_number(lx*ly*lz))
   {
     long local_group_size = lx*ly*lz;
     
@@ -325,7 +365,7 @@ void ocl_test::test_configuration(cl_kernel kernel, test_iden ident)
     
     double warmup_time = event_to_time(event);
     
-    int rounds = (double(10*1000*1000) / warmup_time);
+    int rounds = (double(4*1000*1000) / warmup_time);
     
     if (rounds > 512)
     {

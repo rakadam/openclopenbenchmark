@@ -1,0 +1,27 @@
+
+//OpenCL
+//MAX_GLOBAL_SIZE(0):(1024*1024*1)
+//MAX_GLOBAL_SIZE(1):1
+//MAX_GLOBAL_SIZE(2):1
+//MAX_LOCAL_SIZE(0):0
+//MAX_LOCAL_SIZE(1):1
+//MAX_LOCAL_SIZE(2):1
+
+kernel void simple_transp(global int* buffer1, global int*buffer2, int buffer_size)
+{
+	int index = get_global_id(0);
+	index = (index >> 10) | ((index&0x3FF) << 10);
+	
+	buffer2[index] = buffer1[get_global_id(0)];
+}
+
+//Gold
+
+void simple_transp(void* buffer1, void* buffer2, int buffer_size)
+{
+	for (int i = 0; i <  buffer_size; i++)
+	{
+	    int index = (i >> 10) | ((i&0x3FF) << 10);
+	    ((int*)buffer2)[index] = ((int*)buffer1)[i];
+	}
+}
