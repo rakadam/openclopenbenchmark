@@ -1,0 +1,133 @@
+
+//OpenCL
+//MAX_GLOBAL_SIZE(0):-1
+//MAX_GLOBAL_SIZE(1):1
+//MAX_GLOBAL_SIZE(2):1
+//MAX_LOCAL_SIZE(0):0
+//MAX_LOCAL_SIZE(1):1
+//MAX_LOCAL_SIZE(2):1
+
+kernel void branch2(global int* buffer1, global int*buffer2, int buffer_size)
+{
+  int val = buffer1[get_global_id(0)];
+  
+  for(int j = 0; j < 512; j++)
+  {
+    switch (val%16)
+    {
+      case 0:
+        val += 34;
+        break;
+      case 1:
+        val += 546;
+        break;
+      case 2:
+        val += 33;
+        break;
+      case 3:
+        val += 33454;
+        break;
+      case 4:
+        val += 34678;
+        break;
+      case 5:
+        val += 342015;
+        break;
+      case 6:
+        val += 34318;
+        break;
+      case 7:
+        val += 34453;
+        break;
+      case 8:
+        val += 34345;
+        break;
+      case 9:
+        val += 1434;
+        break;
+      case 10:
+        val += 334514;
+        break;
+      case 11:
+        val += 340325;
+        break;
+      case 12:
+        val += 3402334;
+        break;
+      case 13:
+        val += 3434521;
+        break;
+      default:
+        val += 1;
+    }
+  }
+  
+  buffer2[get_global_id(0)] = val;
+}
+
+//Gold
+
+#ifndef __OPENCL_VERSION__
+
+void branch2(void* buffer1, void* buffer2, int buffer_size)
+{
+  for (int i = 0; i <  buffer_size; i++)
+  {
+    int val = ((int*)buffer1)[i];
+          
+    for(int j = 0; j < 512; j++)
+    {
+      switch (val%16)
+      {
+        case 0:
+          val += 34;
+          break;
+        case 1:
+          val += 546;
+          break;
+        case 2:
+          val += 33;
+          break;
+        case 3:
+          val += 33454;
+          break;
+        case 4:
+          val += 34678;
+          break;
+        case 5:
+          val += 342015;
+          break;
+        case 6:
+          val += 34318;
+          break;
+        case 7:
+          val += 34453;
+          break;
+        case 8:
+          val += 34345;
+          break;
+        case 9:
+          val += 1434;
+          break;
+        case 10:
+          val += 334514;
+          break;
+        case 11:
+          val += 340325;
+          break;
+        case 12:
+          val += 3402334;
+          break;
+        case 13:
+          val += 3434521;
+          break;
+        default:
+          val += 1;
+      }
+    }
+          
+    ((int*)buffer2)[i] = val;
+  }
+}
+
+#endif

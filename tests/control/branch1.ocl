@@ -1,6 +1,6 @@
 
 //OpenCL
-//MAX_GLOBAL_SIZE(0):(1024*1024*1)
+//MAX_GLOBAL_SIZE(0):-1
 //MAX_GLOBAL_SIZE(1):1
 //MAX_GLOBAL_SIZE(2):1
 //MAX_LOCAL_SIZE(0):0
@@ -11,7 +11,7 @@ kernel void branch1(global int* buffer1, global int*buffer2, int buffer_size)
 {
   int val = buffer1[get_global_id(0)];
   
-  for(int j = 0; j < 16; j++)
+  for(int j = 0; j < 1024; j++)
   {
     if (val < 100)
     {
@@ -72,10 +72,65 @@ kernel void branch1(global int* buffer1, global int*buffer2, int buffer_size)
 
 void branch1(void* buffer1, void* buffer2, int buffer_size)
 {
-	for (int i = 0; i <  buffer_size; i++)
-	{
-	    ((int*)buffer2)[i] = ((int*)buffer1)[i];
-	}
+  for (int i = 0; i <  buffer_size; i++)
+  {
+    
+    int val = ((int*)buffer1)[i];
+          
+    for(int j = 0; j < 1024; j++)
+    {
+      if (val < 100)
+      {
+        val *= 2;
+        
+        if (val % 2 == 0)
+        {
+          val += 77;
+        }
+        else
+        {
+          val += 2347;
+          
+          if (val/3 > 10)
+          {
+            val *= 34;
+          }
+          else if (val%11 == 2)
+          {
+            val += 345;
+          }
+          else if (val%11 == 3)
+          {
+            val += 3435;
+          }
+          else if (val%11 == 7)
+          {
+            val *= 2345;
+          }
+        }
+      }
+      else
+      {
+        val += 3435;
+        
+        if (val < 0)
+        {
+          val *= 2349;
+          
+          if ((-val*100)/7 > 10)
+          {
+            val -= 234;
+          }
+          else
+          {
+            val /= 11;
+          }
+        }
+      }
+    }
+          
+    ((int*)buffer2)[i] = val;
+  }
 }
 
 #endif
