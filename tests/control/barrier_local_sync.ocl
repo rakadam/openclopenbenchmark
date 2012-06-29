@@ -7,13 +7,13 @@
 //MAX_LOCAL_SIZE(1):1
 //MAX_LOCAL_SIZE(2):1
 
-kernel void barrier_sync2(global int* buffer1, global int*buffer2, int buffer_size)
+kernel void barrier_local_sync(global int* buffer1, global int*buffer2, int buffer_size)
 {
   int val = buffer1[get_global_id(0)];
   
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 1; i++)
   {
-    barrier(CLK_GLOBAL_MEM_FENCE);
+    barrier(CLK_LOCAL_MEM_FENCE);
   }
   
   buffer2[get_global_id(0)] = val;
@@ -23,7 +23,7 @@ kernel void barrier_sync2(global int* buffer1, global int*buffer2, int buffer_si
 
 #ifndef __OPENCL_VERSION__
 
-void barrier_sync2(void* buffer1, void* buffer2, int buffer_size)
+void barrier_local_sync(void* buffer1, void* buffer2, int buffer_size)
 {
 	for (int i = 0; i <  buffer_size; i++)
 	{
