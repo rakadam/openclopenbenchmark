@@ -1,0 +1,39 @@
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
+
+//OpenCL
+//MAX_GLOBAL_SIZE(0):(1*1024*1024)
+//MAX_GLOBAL_SIZE(1):1
+//MAX_GLOBAL_SIZE(2):1
+//MAX_LOCAL_SIZE(0):0
+//MAX_LOCAL_SIZE(1):1
+//MAX_LOCAL_SIZE(2):1
+//MIN_LOCAL_SIZE:32
+
+kernel void mad_double_test(global int* buffer1, global int*buffer2, int buffer_size)
+{
+  double data1 = buffer1[get_global_id(0)];
+  double data2 = buffer1[get_global_id(0)]/10.0f+1;
+  double data3 = buffer1[get_global_id(0)]/100.0f+2;
+
+  for (int i = 0; i < 512; i++)
+  {
+    data1 = mad(data1, data2, data3);
+    data2 = mad(data2, data1, data3);
+    data3 = mad(data3, data2, data1);
+  }
+  
+  buffer2[get_global_id(0)] = data1+data2+data3;
+}
+
+//Gold
+#ifndef __OPENCL_VERSION__
+
+void mad_double_test(void* buffer1, void* buffer2, int buffer_size)
+{
+  for (int i = 0; i <  buffer_size; i++)
+  {
+    //TODO
+    throw 0;
+  }
+}
+#endif
