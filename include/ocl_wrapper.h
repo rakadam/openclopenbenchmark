@@ -61,9 +61,10 @@ class ocl_test
   bool interesting_number(long num);
 public:
   
-  std::map<std::string, std::map<int, int> > max_global_size; ///< max global size for kernel, if ==zero, then it is unlimited, if -1 it's the max simultanious hw thread num
-  std::map<std::string, std::map<int, int> > max_local_size; ///< max local size for kernel, if ==zero, then it is unlimited
-  
+  std::map<std::string, std::map<int, int> > max_global_size; ///< max global size for the kernels, if ==zero, then it is unlimited, if -1 it's the max simultanious hw thread num
+  std::map<std::string, std::map<int, int> > max_local_size; ///< max local size for the kernels, if ==zero, then it is unlimited
+  std::map<std::string, std::map<int, int> > min_local_size; ///< min local size for the kernels, (default)zero is ignored
+
   cl_mem dev_buffer1, dev_buffer2;
   cl_int dev_buffer_size; ///< assumes 32bit elemsize
 

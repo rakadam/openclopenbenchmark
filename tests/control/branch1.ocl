@@ -6,6 +6,7 @@
 //MAX_LOCAL_SIZE(0):0
 //MAX_LOCAL_SIZE(1):1
 //MAX_LOCAL_SIZE(2):1
+//MIN_LOCAL_SIZE:32
 
 kernel void branch1(global int* buffer1, global int*buffer2, int buffer_size)
 {

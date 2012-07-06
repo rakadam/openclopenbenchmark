@@ -29,7 +29,7 @@ EXECUTE_PROCESS(
 ADD_CUSTOM_COMMAND(
 	OUTPUT "tmp/${name}_wrap.cpp"
 	COMMAND utils/splitter ${socl} tmp/
-	DEPENDS ${socl}
+	DEPENDS ${socl} utils/splitter
 )
 SET(main_SRC
     ${main_SRC}
@@ -40,7 +40,7 @@ endforeach(socl)
 ADD_CUSTOM_COMMAND(
 	OUTPUT tmp/test_wrap_main.cpp
 	COMMAND utils/wrap_main_gen ${test_SRC} > tmp/test_wrap_main.cpp
-	DEPENDS ${test_SRC}
+	DEPENDS ${test_SRC} utils/wrap_main_gen
 )
 
 ADD_EXECUTABLE(opencl_benchmark ${main_SRC})

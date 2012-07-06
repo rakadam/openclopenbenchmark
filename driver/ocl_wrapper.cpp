@@ -263,9 +263,34 @@ void ocl_test::launch_kernel(cl_kernel kernel, const char* name)
   
   //local_max_x = local_max_y = local_max_z = 1;
   
-  for (long lx = 1; lx <= local_max_x; lx++)
-  for (long ly = 1; ly <= local_max_y; ly++)
-  for (long lz = 1; lz <= local_max_z; lz++)
+  long lmx = max(min_local_size[name][0], 1);
+  long lmy = max(min_local_size[name][1], 1);
+  long lmz = max(min_local_size[name][2], 1);
+  
+  ///fallback code in case the minimum local size is too big
+  if (lmx*lmy*lmz > work_group_computed_size or lmx*lmy*lmz > max_work_group_size)
+  {
+    lmx = lmy = lmz = 1;
+  }
+  
+  if (lmx > local_max_x)
+  {
+    lmx = 1;
+  }
+  
+  if (lmy > local_max_y)
+  {
+    lmy = 1;
+  }
+  
+  if (lmz > local_max_z)
+  {
+    lmz = 1;
+  }
+  
+  for (long lx = lmx; lx <= local_max_x; lx++)
+  for (long ly = lmy; ly <= local_max_y; ly++)
+  for (long lz = lmz; lz <= local_max_z; lz++)
   if (lx*ly*lz <= max_work_group_size and lx*ly*lz <= work_group_computed_size)
   if (interesting_number(lx*ly*lz))
   {
@@ -360,7 +385,7 @@ void ocl_test::test_configuration(cl_kernel kernel, test_iden ident)
   
   summary_final.JB = 1E40;
   
-  for (int w = 0; w < 10; w++)
+  for (int w = 0; w < 5; w++)
   {
     cl_int errnum;
     cl_event event;
@@ -416,15 +441,14 @@ void ocl_test::test_configuration(cl_kernel kernel, test_iden ident)
     
     logfile << "E: " << summary.E << "us D:" << summary.D << "us  JB:" << summary.JB << endl;
     
-    if (summary.JB < 3000) ///< glitches mess with the statistics, so we retry a few times if JB is too big
-    {
-      summary_final = summary;
-      break;
-    }
-    
     if (summary.JB < summary_final.JB)
     {
       summary_final = summary;
+    }
+    
+    if (summary.JB < 6000) ///< glitches mess with the statistics, so we retry a few times if JB is too big
+    {
+      break;
     }
   }
   

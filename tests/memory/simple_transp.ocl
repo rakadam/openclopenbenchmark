@@ -1,11 +1,7 @@
 
 //OpenCL
-//MAX_GLOBAL_SIZE(0):(1024*1024*1)
-//MAX_GLOBAL_SIZE(1):1
-//MAX_GLOBAL_SIZE(2):1
-//MAX_LOCAL_SIZE(0):0
-//MAX_LOCAL_SIZE(1):1
-//MAX_LOCAL_SIZE(2):1
+//MAX_GLOBAL_SIZE:(1024*1024*1)
+//MIN_LOCAL_SIZE:32
 
 kernel void simple_transp(global int* buffer1, global int*buffer2, int buffer_size)
 {

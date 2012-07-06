@@ -92,10 +92,24 @@ if grep -q "MAX_LOCAL_SIZE:" $tmpfile; then
     echo "test.max_local_size[\"$name\"][2] = 1;" >> $resname
 fi
 
+if grep -q "MIN_LOCAL_SIZE:" $tmpfile; then
+    sizenum=`grep "MIN_LOCAL_SIZE:" $tmpfile | cut -d ':' -f 2`
+    echo "test.min_local_size[\"$name\"][0] = $sizenum;" >> $resname
+    echo "test.min_local_size[\"$name\"][1] = 1;" >> $resname
+    echo "test.min_local_size[\"$name\"][2] = 1;" >> $resname
+fi
+
 for i in 0 1 2; do
 if grep -q "MAX_LOCAL_SIZE($i)" $tmpfile; then
     sizenum=`grep "MAX_LOCAL_SIZE($i)" $tmpfile | cut -d ':' -f 2`
     echo "test.max_local_size[\"$name\"][$i] = $sizenum;" >> $resname
+fi
+done
+
+for i in 0 1 2; do
+if grep -q "MIN_LOCAL_SIZE($i)" $tmpfile; then
+    sizenum=`grep "MIN_LOCAL_SIZE($i)" $tmpfile | cut -d ':' -f 2`
+    echo "test.min_local_size[\"$name\"][$i] = $sizenum;" >> $resname
 fi
 done
 
