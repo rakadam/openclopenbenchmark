@@ -18,6 +18,8 @@ else
 fi
 done
 
+names=`echo "${names}" | sed -e 's/ /\n/g' | sort`
+
 echo >> $resname
 
 for name in $names; do

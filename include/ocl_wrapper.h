@@ -6,6 +6,7 @@
 #include <string>
 #include <fstream>
 #include <cmath>
+#include <set>
 
 class ocl_test;
 
@@ -28,10 +29,12 @@ class ocl_test
     size_t global_size[3];
   };
   
+  std::set<int> bad_kernels;
   std::vector<test_func> gold_test_funcs;
   std::vector<test_func> ocl_test_funcs;
   std::map<std::string, test_func> gold_test_funcs_by_name;
   std::map<std::string, test_func> ocl_test_funcs_by_name;
+  std::map<test_func, std::string> ocl_test_name_by_func;
   
   typedef std::string Tdevicename;
   
@@ -62,6 +65,8 @@ class ocl_test
   size_t max_work_item_sizes[1024];
   size_t max_work_group_size;
   
+  bool dummy_run;
+  
   std::string clean_spaces(std::string name);
   bool interesting_number(long num, std::string name);
 public:
@@ -78,6 +83,7 @@ public:
   int host_buffer_size; ///< assumes 32bit elemsize
 
   ocl_test();
+  void compile_test();
   void get_max_sizes();
   void run_tests();
   void run_tests_on_all();

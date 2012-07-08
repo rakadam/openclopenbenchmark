@@ -12,17 +12,51 @@ using namespace std;
 
 cl_ulong local_mem_size;
 
-ocl_test::ocl_test() : logfile("openclbenchmark.log"), alloc_size(64*1024*1024)
+ocl_test::ocl_test() : logfile("openclbenchmark.log"), alloc_size(64*1024*1024), dummy_run(false)
 {
   register_tests();
+}
+
+void ocl_test::compile_test()
+{
+  dummy_run = true;
+  
+  bad_kernels.clear();
+  
+  for (int i = 0; i < int(ocl_test_funcs.size()); i++)
+  {
+    try{
+    logfile << "test #" << i << " compile: " << ocl_test_name_by_func.at(ocl_test_funcs[i]) << endl;
+    ocl_test_funcs[i](*this);
+    } catch(runtime_error& e)
+    {
+      logfile << e.what() << endl;
+      bad_kernels.insert(i);
+    }
+  }
+  
+  for (set<int>::iterator i = bad_kernels.begin(); i != bad_kernels.end(); i++)
+  {
+    logfile << ocl_test_name_by_func.at(ocl_test_funcs[*i]) << " does not compile" << endl;
+  }
+  
+  dummy_run = false;
 }
 
 void ocl_test::run_tests()
 {
   for (int i = 0; i < int(ocl_test_funcs.size()); i++)
   {
-		logfile << "test #" << i << endl;
-    ocl_test_funcs[i](*this);
+    logfile << "test #" << i << endl;
+    
+    if (bad_kernels.find(i) == bad_kernels.end())
+    {
+      ocl_test_funcs[i](*this);
+    }
+    else
+    {
+      logfile << "kernel is ignored" << endl;
+    }
   }
 }
 
@@ -116,6 +150,7 @@ void ocl_test::run_tests_on_all()
       logfile << "cmdqueue :" << command_queue << endl;
       alloc_memory();
       
+      compile_test();
       run_tests();
       
       free_memory();
@@ -130,6 +165,7 @@ void ocl_test::register_ocl_test(test_func f, std::string name)
 {
   ocl_test_funcs_by_name[name] = f;
   ocl_test_funcs.push_back(f);
+  ocl_test_name_by_func[f] = name;
 }
 
 void ocl_test::register_gold_test(test_func f, std::string name)
@@ -212,6 +248,11 @@ bool ocl_test::interesting_number(long num, std::string name)
 
 void ocl_test::launch_kernel(cl_kernel kernel, const char* name)
 {
+  if (dummy_run)
+  {
+    return;
+  }
+  
   logfile << "Testing kernel: " << name << endl;
   
   int global_max_x = alloc_size/sizeof(int);
