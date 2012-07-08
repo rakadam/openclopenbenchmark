@@ -12,7 +12,7 @@ using namespace std;
 
 cl_ulong local_mem_size;
 
-ocl_test::ocl_test() : logfile("openclbenchmark.log"), alloc_size(128*1024*1024)
+ocl_test::ocl_test() : logfile("openclbenchmark.log"), alloc_size(64*1024*1024)
 {
   register_tests();
 }
@@ -164,8 +164,13 @@ cl_program ocl_test::ocl_load_src(const char* src)
   return program;
 }
 
-bool ocl_test::interesting_number(long num)
+bool ocl_test::interesting_number(long num, std::string name)
 {
+  if (kernel_flags[name]&KERNEL_FLAG_ALL_LOCAL_SIZES)
+  {
+    return true;
+  }
+  
   if (num <= 16)
   {
     return true;
@@ -190,6 +195,11 @@ bool ocl_test::interesting_number(long num)
         pnum++;
       }
     }
+  }
+  
+  if (kernel_flags[name]&KERNEL_FLAG_MORE_LOCAL_SIZES)
+  {
+    pnum++;
   }
   
   if ((pnum > 4 and num < 255) or pnum > 5)
@@ -261,6 +271,8 @@ void ocl_test::launch_kernel(cl_kernel kernel, const char* name)
   
   clGetKernelWorkGroupInfo(kernel, devices[cur_dev_num], CL_KERNEL_WORK_GROUP_SIZE, sizeof(work_group_computed_size), &work_group_computed_size, NULL);
   
+  logfile << "work_group_computed_size: " << work_group_computed_size << endl;
+  
   //local_max_x = local_max_y = local_max_z = 1;
   
   long lmx = max(min_local_size[name][0], 1);
@@ -292,7 +304,7 @@ void ocl_test::launch_kernel(cl_kernel kernel, const char* name)
   for (long ly = lmy; ly <= local_max_y; ly++)
   for (long lz = lmz; lz <= local_max_z; lz++)
   if (lx*ly*lz <= max_work_group_size and lx*ly*lz <= work_group_computed_size)
-  if (interesting_number(lx*ly*lz))
+  if (interesting_number(lx*ly*lz, name))
   {
     long local_group_size = lx*ly*lz;
     

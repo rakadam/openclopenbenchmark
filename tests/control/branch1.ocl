@@ -12,6 +12,7 @@ kernel void branch1(global int* buffer1, global int*buffer2, int buffer_size)
 {
   int val = buffer1[get_global_id(0)];
   
+  ///this is a convergent dataflow, after a few iteration most values should converge into a similar branch pattern
   for(int j = 0; j < 1024; j++)
   {
     if (val < 100)

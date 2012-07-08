@@ -13,6 +13,11 @@ typedef void (*test_func)(ocl_test&);
 
 extern cl_ulong local_mem_size;
 
+enum kernel_flags{
+  KERNEL_FLAG_ALL_LOCAL_SIZES = 1,
+  KERNEL_FLAG_MORE_LOCAL_SIZES = 2
+};
+
 class ocl_test
 {
   struct test_iden
@@ -58,13 +63,14 @@ class ocl_test
   size_t max_work_group_size;
   
   std::string clean_spaces(std::string name);
-  bool interesting_number(long num);
+  bool interesting_number(long num, std::string name);
 public:
   
   std::map<std::string, std::map<int, int> > max_global_size; ///< max global size for the kernels, if ==zero, then it is unlimited, if -1 it's the max simultanious hw thread num
   std::map<std::string, std::map<int, int> > max_local_size; ///< max local size for the kernels, if ==zero, then it is unlimited
   std::map<std::string, std::map<int, int> > min_local_size; ///< min local size for the kernels, (default)zero is ignored
-
+  std::map<std::string, unsigned> kernel_flags; ///< or-ed flags of kernel_flags
+  
   cl_mem dev_buffer1, dev_buffer2;
   cl_int dev_buffer_size; ///< assumes 32bit elemsize
 

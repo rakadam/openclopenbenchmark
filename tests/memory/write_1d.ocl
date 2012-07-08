@@ -10,15 +10,15 @@
 
 kernel void write_1d(global int* buffer2, int buffer_size)
 {
-	buffer2[get_global_id(0)] = get_global_id(0);
+  buffer2[get_global_id(0)] = get_global_id(0);
 }
 
 //Gold
 
 void write_1d(void* buffer2, int buffer_size)
 {
-	for (int i = 0; i <  buffer_size; i++)
-	{
-	    ((int*)buffer2)[i] = i;
-	}
+  for (int i = 0; i <  buffer_size; i++)
+  {
+    ((int*)buffer2)[i] = i;
+  }
 }

@@ -125,6 +125,11 @@ if ! grep -q "MAX_LOCAL_SIZE" $tmpfile; then
     echo "test.max_local_size[\"$name\"][2] = 1;" >> $resname
 fi
 
+if grep -q "KERNEL_FLAG:" $tmpfile; then
+    kflag=`grep "KERNEL_FLAG:" $tmpfile | cut -d ':' -f 2`
+    echo "test.kernel_flags[\"$name\"] |= ${kflag};" >> $resname
+fi
+
 echo "cl_program program = test.ocl_load_src(ocl_src);" >> $resname
 echo "cl_kernel kernel = clCreateKernel(program, \"$name\", &ciErrNum);" >> $resname
 echo "test.geterr(ciErrNum, __LINE__, \"$name\");" >> $resname
