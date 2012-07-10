@@ -15,6 +15,7 @@ file(GLOB test_SRC
 	tests/memory/*.ocl
 	tests/arithmetic/*.ocl
 	tests/control/*.ocl
+        tests/image/*.ocl
 )
 
 EXECUTE_PROCESS(

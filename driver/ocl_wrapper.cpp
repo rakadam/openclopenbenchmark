@@ -14,7 +14,45 @@ cl_ulong local_mem_size;
 
 ocl_test::ocl_test() : logfile("openclbenchmark.log"), alloc_size(64*1024*1024), dummy_run(false)
 {
+  dev_image1_2d = NULL;
+  dev_image2_2d = NULL;
+  dev_image3_2d = NULL;
+  dev_image1_3d = NULL;
+  dev_image2_3d = NULL;
+  dev_image3_3d = NULL;
+  
+  host_image1_2d = NULL;
+  host_image2_2d = NULL;
+  host_image3_2d = NULL;
+  host_image1_3d = NULL;
+  host_image2_3d = NULL;
+  host_image3_3d = NULL;
+  
   register_tests();
+}
+
+void ocl_test::free_dyn_memory()
+{
+  #define releaseif(ptr) if (ptr) clReleaseMemObject(ptr); ptr = NULL;
+   
+  releaseif(dev_image1_2d);
+  releaseif(dev_image2_2d);
+  releaseif(dev_image3_2d);
+  releaseif(dev_image1_3d);
+  releaseif(dev_image2_3d);
+  releaseif(dev_image3_3d);
+  
+  #undef releaseif 
+  #define releaseif(ptr) if (ptr) free(ptr); ptr = NULL;
+  
+  releaseif(host_image1_2d);
+  releaseif(host_image2_2d);
+  releaseif(host_image3_2d);
+  releaseif(host_image1_3d);
+  releaseif(host_image2_3d);
+  releaseif(host_image3_3d);
+  
+  #undef releaseif 
 }
 
 void ocl_test::compile_test()
@@ -399,12 +437,12 @@ void ocl_test::launch_kernel(cl_kernel kernel, const char* name)
       test_iden iden;
       iden.dev_name = dev_name;
       iden.test_name = name;
-      iden.local_size[0] = lx;
-      iden.local_size[1] = ly;
-      iden.local_size[2] = lz;
-      iden.global_size[0] = gx;
-      iden.global_size[1] = gy;
-      iden.global_size[2] = gz;
+      iden.local_size[0]  = dev_lmx = host_lmx = lx;
+      iden.local_size[1]  = dev_lmy = host_lmy = ly;
+      iden.local_size[2]  = dev_lmz = host_lmz = lz;
+      iden.global_size[0] = dev_gmx = host_gmx = gx;
+      iden.global_size[1] = dev_gmy = host_gmy = gy;
+      iden.global_size[2] = dev_gmz = host_gmz = gz;
       
       logfile << "test config : " << lx << ":" << ly << ":" << lz << "\t" << gx << ":" << gy << ":" << gz << endl;
       

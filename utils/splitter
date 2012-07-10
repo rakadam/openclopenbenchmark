@@ -135,6 +135,10 @@ echo "cl_kernel kernel = clCreateKernel(program, \"$name\", &ciErrNum);" >> $res
 echo "test.geterr(ciErrNum, __LINE__, \"$name\");" >> $resname
 echo "int parnum = 0;" >> $resname
 
+if grep -q "host_init_${name}" $tmpfile; then
+    echo "host_init_${name}(test);" >> $resname
+fi
+
 for i in $args; do
     echo "clSetKernelArg(kernel, parnum++, sizeof(test.dev_$i), &test.dev_$i);" >> $resname
 done
@@ -142,6 +146,7 @@ done
 echo "test.launch_kernel(kernel, \"$name\");" >> $resname
 echo "clReleaseKernel(kernel);" >> $resname
 echo "clReleaseProgram(program);" >> $resname
+echo "test.free_dyn_memory();" >> $resname
 echo "}" >> $resname
 
 echo >> $resname

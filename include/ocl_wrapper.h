@@ -7,6 +7,7 @@
 #include <fstream>
 #include <cmath>
 #include <set>
+#include <cstring>
 
 class ocl_test;
 
@@ -53,8 +54,6 @@ class ocl_test
   std::vector<result_summary> results;
   
   std::string dev_name;
-  cl_command_queue command_queue;
-  cl_context context;
   std::vector<cl_device_id> devices;
   int cur_dev_num;
   std::ofstream logfile;
@@ -75,14 +74,24 @@ public:
   std::map<std::string, std::map<int, int> > max_local_size; ///< max local size for the kernels, if ==zero, then it is unlimited
   std::map<std::string, std::map<int, int> > min_local_size; ///< min local size for the kernels, (default)zero is ignored
   std::map<std::string, unsigned> kernel_flags; ///< or-ed flags of kernel_flags
-  
+
+  cl_context context;
+  cl_command_queue command_queue;
+
+  cl_mem dev_image1_2d, dev_image2_2d, dev_image3_2d; ///< images are alloced per test
+  cl_mem dev_image1_3d, dev_image2_3d, dev_image3_3d;
   cl_mem dev_buffer1, dev_buffer2;
   cl_int dev_buffer_size; ///< assumes 32bit elemsize
-
+  cl_int dev_gmx, dev_gmy, dev_gmz, dev_lmx, dev_lmy, dev_lmz;
+  
+  void *host_image1_2d, *host_image2_2d, *host_image3_2d;
+  void *host_image1_3d, *host_image2_3d, *host_image3_3d;
   void *host_buffer1, *host_buffer2;
   int host_buffer_size; ///< assumes 32bit elemsize
+  int host_gmx, host_gmy, host_gmz, host_lmx, host_lmy, host_lmz;
 
   ocl_test();
+  void free_dyn_memory();
   void compile_test();
   void get_max_sizes();
   void run_tests();
