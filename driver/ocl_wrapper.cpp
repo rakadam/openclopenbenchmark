@@ -167,6 +167,11 @@ void ocl_test::run_tests_on_all()
       
       clGetDeviceInfo(cur_dev, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(local_mem_size), &local_mem_size, NULL);
 
+      if (local_mem_size > 0)
+      {
+	local_mem_size -= 32;
+      }
+      
       size_t ret_size;
       clGetDeviceInfo(cur_dev, CL_DEVICE_NAME, sizeof(pbuf), pbuf, &ret_size);
       ss << string(pbuf, pbuf+ret_size-1);
@@ -250,7 +255,7 @@ bool ocl_test::interesting_number(long num, std::string name)
     return true;
   }
   
-  if (abs(long(pow(2, int(round(log2(num)))))-num) < 6)
+  if (abs(double(pow(2, int(round(log2(num)))))-num) < 6)
   {
     return true;
   }
@@ -487,6 +492,15 @@ void ocl_test::test_configuration(cl_kernel kernel, test_iden ident)
     clFinish(command_queue);
     
     double warmup_time = event_to_time(event);
+    
+    if (warmup_time > 10E7)
+    {
+      errnum = clEnqueueNDRangeKernel(command_queue, kernel, 3, NULL, &ident.global_size[0], &ident.local_size[0], 0, NULL, &event);
+      geterr(errnum, __LINE__, "ocl_wrapper.cpp");
+      clFinish(command_queue);
+      
+      warmup_time = event_to_time(event);
+    }
     
     int rounds = (double(4*1000*1000) / warmup_time);
     
