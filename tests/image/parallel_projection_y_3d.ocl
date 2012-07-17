@@ -1,0 +1,89 @@
+//OpenCL
+//MAX_GLOBAL_SIZE(0):512
+//MAX_GLOBAL_SIZE(1):512
+//MAX_GLOBAL_SIZE(2):1
+//MAX_LOCAL_SIZE(0):0
+//MAX_LOCAL_SIZE(1):0
+//MAX_LOCAL_SIZE(2):1
+//MIN_LOCAL_SIZE(0):2
+//MIN_LOCAL_SIZE(1):2
+//MIN_LOCAL_SIZE(2):1
+
+kernel void parallel_projection_3d(read_only image3d_t image1_3d, write_only image2d_t image1_2d)
+{
+  const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
+
+  int x = get_global_id(0);
+  int z = get_global_id(1);
+  int4 dim = get_image_dim(image1_3d);
+  
+  float sum = 0;
+  
+  for(int y = 0; y < dim.y; y++)
+  {
+    float4 pos = {x+0.5f, y+0.5f, z+0.5f, 0.0f};
+    sum += read_imagef(image1_3d, sampler, pos).x;
+  }
+  
+  int2 pos = {x, z};
+  
+  float4 val = sum;
+  
+  write_imagef(image1_2d, pos, val);
+  
+}
+
+
+//Gold
+#ifndef __OPENCL_VERSION__
+
+void host_init_parallel_projection_3d(ocl_test& test)
+{
+  cl_image_format myformat3d, myformat2d;
+  
+  myformat3d.image_channel_order = CL_INTENSITY;
+  myformat3d.image_channel_data_type = CL_UNORM_INT8;
+  
+  myformat2d.image_channel_order = CL_INTENSITY;
+  myformat2d.image_channel_data_type = CL_FLOAT;
+  
+  int mx = 512;
+  int my = 512;
+  int mz = 512;
+  
+  cl_int err;
+  test.dev_image1_3d = clCreateImage3D(test.context, CL_MEM_READ_ONLY, &myformat3d, mx, my, mz, 0, 0,  NULL, &err);
+  test.geterr(err, __LINE__, __FILE__);
+  
+  test.dev_image1_2d = clCreateImage2D(test.context, CL_MEM_WRITE_ONLY, &myformat2d, mx, my, 0, NULL, &err);
+  test.geterr(err, __LINE__, __FILE__);
+  
+  std::vector<unsigned char> data(mx*my*mz);
+  
+  for (int i = 0; i < int(data.size()); i++)
+  {
+    data[i] = i%255;
+  }
+  
+  const size_t origin[3] = {0, 0, 0};
+  const size_t region3d[3] = {mx, my, mz};
+  const size_t region2d[3] = {mx, my, 1};
+  
+  clEnqueueWriteImage(test.command_queue, test.dev_image1_3d, true, origin, region3d, 0, 0, &data[0], 0, NULL, NULL);
+  clEnqueueWriteImage(test.command_queue, test.dev_image2_2d, true, origin, region2d, 0, 0, &data[0], 0, NULL, NULL);
+  
+  test.host_image1_3d = malloc(sizeof(data[0])*data.size());
+  test.host_image1_2d = malloc(sizeof(data[0])*mx*my);
+  
+  memcpy(test.host_image1_3d, &data[0], sizeof(data[0])*data.size());
+  memcpy(test.host_image1_2d, &data[0], sizeof(data[0])*mx*my);
+}
+
+void parallel_projection_3d(void* image1_3d, void* image1_2d)
+{
+  //TODO
+  throw 0;
+}
+
+#endif
+
