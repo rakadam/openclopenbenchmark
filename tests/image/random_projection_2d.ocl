@@ -1,0 +1,151 @@
+
+//OpenCL
+//MAX_GLOBAL_SIZE(0):4096
+//MAX_GLOBAL_SIZE(1):1
+//MAX_GLOBAL_SIZE(2):1
+//MAX_LOCAL_SIZE(0):0
+//MAX_LOCAL_SIZE(1):1
+//MAX_LOCAL_SIZE(2):1
+//MIN_LOCAL_SIZE(0):4
+//MIN_LOCAL_SIZE(1):1
+//MIN_LOCAL_SIZE(2):1
+
+kernel void random_projection_2d(read_only image2d_t image1_2d, global int4* buffer1, global int*buffer2)
+{
+  const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
+  
+  int id = get_global_id(0);
+  
+  int4 positions = buffer1[id];
+}
+
+//Gold
+#ifndef __OPENCL_VERSION__
+
+void host_init_random_projection_2d(ocl_test& test)
+{
+  cl_image_format myformat;
+  
+  myformat.image_channel_order = CL_INTENSITY;
+  myformat.image_channel_data_type = CL_FLOAT;
+  
+  int mx = 4096;
+  int my = 4096;
+  
+  cl_int err;
+  test.dev_image1_2d = clCreateImage2D(test.context, CL_MEM_READ_ONLY, &myformat, mx, my, 0, NULL, &err);
+  test.geterr(err, __LINE__, __FILE__);
+  
+  std::vector<float> data(mx*my);
+  
+  for (int i = 0; i < int(data.size()); i++)
+  {
+    data[i] = i%255;
+  }
+  
+  const size_t origin[3] = {0, 0, 0};
+  const size_t region[3] = {mx, my, 1};
+  
+  clEnqueueWriteImage(test.command_queue, test.dev_image1_2d, true, origin, region, 0, 0, &data[0], 0, NULL, NULL);
+  
+  test.host_image1_2d = malloc(sizeof(data[0])*data.size());
+  
+  memcpy(test.host_image1_2d, &data[0], sizeof(data[0])*data.size());
+  
+  int MAXTHREADS = 1024*32;
+  
+  for(int i = 0; i < MAXTHREADS; i++)
+  {
+    char side1 = rand()%4;
+    char side2 = rand()%3;
+    if (side1 == 0)
+    {
+      ((int*)test.host_buffer1)[4*i] = rand()%mx;
+      ((int*)test.host_buffer1)[4*i+1] = 0;
+      if (side2 == 0)
+      {
+	((int*)test.host_buffer1)[4*i+2] = rand()%mx;
+	((int*)test.host_buffer1)[4*i+3] = my-1;
+      }
+      else if (side2 ==1)
+      {
+	((int*)test.host_buffer1)[4*i+2] = 0;
+	((int*)test.host_buffer1)[4*i+3] = rand()%my;
+      }
+      else
+      {
+	((int*)test.host_buffer1)[4*i+2] = mx-1;
+	((int*)test.host_buffer1)[4*i+3] = rand()%my;
+      }
+    }
+    else if (side1 == 1)
+    {
+      ((int*)test.host_buffer1)[4*i] = rand()%mx;
+      ((int*)test.host_buffer1)[4*i+1] = my-1;
+      if (side2 == 0)
+      {
+	((int*)test.host_buffer1)[4*i+2] = rand()%mx;
+	((int*)test.host_buffer1)[4*i+3] = 0;
+      }
+      else if (side2 ==1)
+      {
+	((int*)test.host_buffer1)[4*i+2] = 0;
+	((int*)test.host_buffer1)[4*i+3] = rand()%my;
+      }
+      else
+      {
+	((int*)test.host_buffer1)[4*i+2] = mx-1;
+	((int*)test.host_buffer1)[4*i+3] = rand()%my;
+      }
+    }
+    else if (side1 == 2)
+    {
+      ((int*)test.host_buffer1)[4*i] = 0;
+      ((int*)test.host_buffer1)[4*i+1] = rand()%my;
+      if (side2 == 0)
+      {
+	((int*)test.host_buffer1)[4*i+2] = rand()%mx;
+	((int*)test.host_buffer1)[4*i+3] = my-1;
+      }
+      else if (side2 ==1)
+      {
+	((int*)test.host_buffer1)[4*i+2] = rand()%mx;
+	((int*)test.host_buffer1)[4*i+3] = 0;
+      }
+      else
+      {
+	((int*)test.host_buffer1)[4*i+2] = mx-1;
+	((int*)test.host_buffer1)[4*i+3] = rand()%my;
+      }
+    }
+    else
+    {
+      ((int*)test.host_buffer1)[4*i] = mx-1;
+      ((int*)test.host_buffer1)[4*i+1] = rand()%my;
+      if (side2 == 0)
+      {
+	((int*)test.host_buffer1)[4*i+2] = rand()%mx;
+	((int*)test.host_buffer1)[4*i+3] = my-1;
+      }
+      else if (side2 ==1)
+      {
+	((int*)test.host_buffer1)[4*i+2] = 0;
+	((int*)test.host_buffer1)[4*i+3] = rand()%my;
+      }
+      else
+      {
+	((int*)test.host_buffer1)[4*i+2] = rand()%mx;
+	((int*)test.host_buffer1)[4*i+3] = 0;
+      }
+    }
+  }
+  
+  clEnqueueWriteBuffer(test.command_queue, test.dev_buffer1, CL_TRUE, 0, 4*MAXTHREADS*sizeof(int), test.host_buffer1, 0, NULL, NULL);
+  
+}
+
+void random_projection_2d(void* image1_2d, void* buffer1, void* buffer2)
+{
+  
+}
+#endif

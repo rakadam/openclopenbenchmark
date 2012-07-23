@@ -14,18 +14,18 @@ kernel void parallel_projection_2d(read_only image2d_t image1_2d)
 {
   const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
   
-  int x = get_global_id(0);
+  int y = get_global_id(0);
   
   int2 dim = get_image_dim(image1_2d);
   
   float sum = 0;
   
-  for(int y = 0; y < dim.y; y++)
+  for(int x = 0; x < dim.x; x++)
   {
     float2 pos = {x+0.5f, y+0.5f};
     sum += read_imagef(image1_2d, sampler, pos).x;
   }
-  
+  //kiirás a memóriába: mibe?
 }
 
 
@@ -66,7 +66,3 @@ void host_init_parallel_projection_2d(ocl_test& test)
 void parallel_projection_2d(void* image1_2d)
 {
 }
-
-#endif
-
-
