@@ -10,7 +10,7 @@
 //MIN_LOCAL_SIZE(1):2
 //MIN_LOCAL_SIZE(2):1
 
-kernel void parallel_projection_3d(read_only image3d_t image1_3d, write_only image2d_t image1_2d)
+kernel void parallel_projection_x_3d(read_only image3d_t image1_3d, write_only image2d_t image1_2d)
 {
   const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
 
@@ -38,7 +38,7 @@ kernel void parallel_projection_3d(read_only image3d_t image1_3d, write_only ima
 //Gold
 #ifndef __OPENCL_VERSION__
 
-void host_init_parallel_projection_3d(ocl_test& test)
+void host_init_parallel_projection_x_3d(ocl_test& test)
 {
   cl_image_format myformat3d, myformat2d;
   
@@ -80,7 +80,7 @@ void host_init_parallel_projection_3d(ocl_test& test)
   memcpy(test.host_image1_2d, &data[0], sizeof(data[0])*mx*my);
 }
 
-void parallel_projection_3d(void* image1_3d, void* image1_2d)
+void parallel_projection_x_3d(void* image1_3d, void* image1_2d)
 {
   //TODO
   throw 0;
